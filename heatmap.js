@@ -75,7 +75,6 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) { return div; }
 	div.className = 'tile';
 	div.style.opacity = 0.0;
-	div.innerHTML = "Loading...";
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
 	var bbox = this.projection.getTileBounds(coord, zoom);
 	div.innerHTML = coord.toString() + ", " + zoom + "<br />" + bbox.toString();
@@ -83,22 +82,22 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	$.ajax({
 		type:         "GET",
 		url:          "http://api.daac.asf.alaska.edu/services/search/param",
-//		url:					"count.json",
 		processData:  true,
 		data:         {
 										bbox: '-126,69.75,-125.75,70',
 										processing: 'L1',
 										format: 'count'
 									},
-		dataType:     "json",
-/*		dataFilter:		function(data, type) {
-										alert(data);
-										return("parseInt(" + data + ");");
-									},*/
+		dataType:     "jsonp",
+		dataFilter:		function(data, type) {
+										console.log('filtering: ' + JSON.stringify(data));
+										return({count: parseInt(JSON.stringify(data))});
+									},
 		success:      new Function(
-			"tileloaded_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom,
-			"data", "tileloaded(" + coord.x + ", " + coord.y + ", " + zoom + ", data);"),
-		error:        function(jqXHR, textStatus, errorThrown) { console.log(JSON.stringify(jqXHR)); }});
+										"tileloaded_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom,
+										"data", "textStatus", "jqXHR",
+										"console.log('success: ' + data); tileloaded(" + coord.x + ", " + coord.y + ", " + zoom + ", data);"),
+	});
 	return div;
 };
 
@@ -208,3 +207,5 @@ function init() {
 }
 
 google.maps.event.addDomListener(window, 'load', init);
+
+console.log("--------------------");
