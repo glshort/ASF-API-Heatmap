@@ -81,6 +81,9 @@ function HeatMapType(tileSize) {
 
 HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	var div = ownerDocument.createElement('DIV');
+	if(coord.y > Math.pow(2, zoom) || coord.y < 0) {
+		return div;
+	}
 	div.className = 'tile';
 	div.style.opacity = 0.0;
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
@@ -105,11 +108,12 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 };
 
 function tileLoaded(div, data) {
-	var scale = 10; //Math.floor(Math.pow(2, (29-z) * 0.5));
+	var scale = 4000; //Math.floor(Math.pow(2, (29-z) * 0.5));
 	var c = bound(data.count, 0, scale);
+	div.innerHTML = data.count;
 	//fixme: next line could maybe go away
 	div.className = 'tile';
-	div.style.opacity = (c / scale) * 0.5;
+	div.style.opacity = 0.5;
 	div.style.backgroundColor = "#" + (Math.floor(255 * c / scale)).toString(16) + "00" + (Math.floor(255-255 * c / scale)).toString(16);
 }
 
@@ -190,8 +194,8 @@ function init() {
 	document.getElementById("heatmap").style.width = sWidth + "px";
 	document.getElementById("heatmap").style.height = sHeight + "px";
 	var mapOptions = {
-		zoom: 0,
-		center: new google.maps.LatLng(64.85,-147.85),
+		zoom: 4,
+		center: new google.maps.LatLng(50,50),
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 	map = new google.maps.Map(document.getElementById("heatmap"), mapOptions);
