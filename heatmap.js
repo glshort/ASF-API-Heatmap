@@ -81,7 +81,7 @@ function HeatMapType(tileSize) {
 
 HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	var div = ownerDocument.createElement('DIV');
-	if(coord.y > Math.pow(2, zoom) || coord.y < 0) {
+	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) {
 		return div;
 	}
 	div.className = 'tile';
@@ -108,13 +108,23 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 };
 
 function tileLoaded(div, data) {
-	var scale = 4000; //Math.floor(Math.pow(2, (29-z) * 0.5));
+	var LUT = [50000, 25000, 15000, 10000, 8000, 7000, 6000, 5000, 4000, 3500, 3000, 2500, 2000, 1500, 1000, 500, 400, 300, 200];
+	var scale = LUT[map.getZoom()];
 	var c = bound(data.count, 0, scale);
-	div.innerHTML = data.count;
 	//fixme: next line could maybe go away
 	div.className = 'tile';
 	div.style.opacity = 0.5;
-	div.style.backgroundColor = "#" + (Math.floor(255 * c / scale)).toString(16) + "00" + (Math.floor(255-255 * c / scale)).toString(16);
+	var r = Math.floor(255 * c / scale).toString(16);
+	if(r.length == 1) {
+		r = "0" + r;
+	}
+	var g = '00';
+	var b = Math.floor(255-255 * c / scale).toString(16);
+	if(b.length == 1) {
+		b = "0" + b;
+	}
+	div.style.backgroundColor = "#" + r + g + b;
+	div.innerHTML = data.count;
 }
 
 function LatLngControl(map) {
@@ -146,26 +156,17 @@ LatLngControl.prototype.updatePosition = function(latLng) {
 	var tileBounds = this.projection.getTileBounds(tileCoord, map.getZoom());
 	var worldCoordinate = this.projection.fromLatLngToPoint(latLng);
 	this.node_.innerHTML = [
+		"Cursor Location:",
+		"<br />",
 		latLng.toUrlValue(4),
 		"<br />",
-		"Tile: ",
-		this.projection.getTileCoord(latLng).toString(),
-		", ",
-		map.getZoom(),
-		"<br />",
-		"World: (",
-		Math.floor(worldCoordinate.x),
-		",",
-		Math.floor(worldCoordinate.y),
-		")<br />",
-		"Pixel: ",
-		new google.maps.Point(Math.floor(worldCoordinate.x * Math.pow(2, map.getZoom())), Math.floor(worldCoordinate.y * Math.pow(2, map.getZoom()))).toString(),
-		"<br />",
-		"NE: ",
-		tileBounds.getNorthEast().toUrlValue(3),
+		"Region Bounds:",
 		"<br />",
 		"SW: ",
-		tileBounds.getSouthWest().toUrlValue(3)
+		tileBounds.getSouthWest().toUrlValue(3),
+		"<br />",
+		"NE: ",
+		tileBounds.getNorthEast().toUrlValue(3)
 		].join("");
 	
 	if(this.activeTile) {
