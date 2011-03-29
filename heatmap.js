@@ -63,11 +63,11 @@ MercatorProjection.prototype.getTileBounds = function(tileCoord, zoom) {
 	var north = (Math.pow(2, zoom) - tileCoord.y) * h - 85.051130;
 	var south = (Math.pow(2, zoom) - (tileCoord.y + 1)) * h - 85.051130;
 	
-	if(west > east) {
-		var t = west;
-		west = east;
-		east = t;
-	}
+//	if(west > east) {
+//		var t = west;
+//		west = east;
+//		east = t;
+//	}
 	
 	return new google.maps.LatLngBounds(
 		new google.maps.LatLng(south, west),
@@ -108,8 +108,13 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 };
 
 function tileLoaded(div, data) {
-	var LUT = [50000, 25000, 15000, 10000, 8000, 7000, 6000, 5000, 4000, 3500, 3000, 2500, 2000, 1500, 1000, 500, 400, 300, 200];
-	var scale = LUT[map.getZoom()];
+	var LUT = [50000, 35000, 25000, 15000, 5000, 2000, 800, 400, 100];
+	var scale;
+	if(map.getZoom() >= LUT.length) {
+		scale = LUT[LUT.length - 1];
+	} else {
+		scale = LUT[map.getZoom()];
+	}
 	var c = bound(data.count, 0, scale);
 	//fixme: next line could maybe go away
 	div.className = 'tile';
@@ -196,6 +201,7 @@ function init() {
 	document.getElementById("heatmap").style.height = sHeight + "px";
 	var mapOptions = {
 		zoom: 4,
+		maxZoom: 8,
 		center: new google.maps.LatLng(50,50),
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
