@@ -88,9 +88,9 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 		data:         {
 										bbox: '-126,69.75,-125.75,70',
 										processing: 'L1',
-										format: 'json'
+										format: 'count'
 									},
-		dataType:     "jsonp",
+		dataType:     "json",
 /*		dataFilter:		function(data, type) {
 										alert(data);
 										return("parseInt(" + data + ");");
@@ -103,7 +103,6 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 };
 
 function tileloaded(x, y, z, data) {
-	alert(data.length);
 	var scale = 10;//Math.floor(Math.pow(2, (29-z) * 0.5));
 	var tilediv = document.getElementById("tilediv_" + x.toString().replace("-", "_") + "_" + y.toString().replace("-", "_") + "_" + z);
 	var c = data;
