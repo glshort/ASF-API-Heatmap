@@ -80,40 +80,34 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	div.innerHTML = coord.toString() + ", " + zoom + "<br />" + bbox.toString();
 	
 	$.ajax({
+		context:			div,
 		type:         "GET",
-		url:          "http://api.daac.asf.alaska.edu/services/search/param",
+		url:          "http://testapi.daac.asf.alaska.edu/services/search/param",
 		processData:  true,
 		data:         {
 										bbox: '-126,69.75,-125.75,70',
-										processing: 'L1',
+										processing: 'BROWSE',
 										format: 'count'
 									},
 		dataType:     "jsonp",
-		dataFilter:		function(data, type) {
-										console.log('filtering: ' + JSON.stringify(data));
-										return({count: parseInt(JSON.stringify(data))});
-									},
-		success:      new Function(
-										"tileloaded_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom,
-										"data", "textStatus", "jqXHR",
-										"console.log('success: ' + data); tileloaded(" + coord.x + ", " + coord.y + ", " + zoom + ", data);"),
+		success:			function(data, textStatus, jqXHR) {
+										tileLoaded(this, data);
+									}
 	});
 	return div;
 };
 
-function tileloaded(x, y, z, data) {
-	var scale = 10;//Math.floor(Math.pow(2, (29-z) * 0.5));
-	var tilediv = document.getElementById("tilediv_" + x.toString().replace("-", "_") + "_" + y.toString().replace("-", "_") + "_" + z);
-	var c = data;
-	tilediv.innerHTML = "(" + x + ", " + y + ")<br />" + c + "/" + scale;
+function tileLoaded(div, data) {
+	var scale = 10; //Math.floor(Math.pow(2, (29-z) * 0.5));
+	var c = data.count;
 	if(c < 0) {
 		c = 0;
 	} else if(c > scale) {
 		c = scale;
 	}
-	tilediv.className = 'tile';
-	tilediv.style.opacity = (c / scale) * 0.5;
-	tilediv.style.backgroundColor = "#" + (Math.floor(255 * c / scale)).toString(16) + "00" + (Math.floor(255-255 * c / scale)).toString(16);
+	div.className = 'tile';
+	div.style.opacity = (c / scale) * 0.5;
+	div.style.backgroundColor = "#" + (Math.floor(255 * c / scale)).toString(16) + "00" + (Math.floor(255-255 * c / scale)).toString(16);
 }
 
 function LatLngControl(map) {
