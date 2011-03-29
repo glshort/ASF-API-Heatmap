@@ -54,15 +54,24 @@ MercatorProjection.prototype.getTileCoord = function(latLng) {
 }
 
 MercatorProjection.prototype.getTileBounds = function(tileCoord, zoom) {
-	var pleft = tileCoord.x * tilesize * Math.pow(2, zoom);
-	var pright = (tileCoord.x + 1) * tilesize * Math.pow(2, zoom);
-	var ptop = tileCoord.y * tilesize * Math.pow(2, zoom);
-	var pbottom = (tileCoord.y + 1) * tilesize * Math.pow(2, zoom);
+	//lat range: +/- 85.051130
+	//lon range: +/- 180.000000
+	var w = 360.0 / Math.pow(2, zoom);
+	var h = 170.102260 / Math.pow(2, zoom);
+	var west = tileCoord.x * w - 180.0;
+	var east = (tileCoord.x + 1) * w - 180.0;
+	var north = (Math.pow(2, zoom) - tileCoord.y) * h - 85.051130;
+	var south = (Math.pow(2, zoom) - (tileCoord.y + 1)) * h - 85.051130;
 	
-	var sw = this.fromPointToLatLng(new google.maps.Point(pleft, pbottom));
-	var ne = this.fromPointToLatLng(new google.maps.Point(pright, ptop));
+	if(west > east) {
+		var t = west;
+		west = east;
+		east = t;
+	}
 	
-	return new google.maps.LatLngBounds(sw, ne);
+	return new google.maps.LatLngBounds(
+		new google.maps.LatLng(south, west),
+		new google.maps.LatLng(north, east));
 }
 
 function HeatMapType(tileSize) {
@@ -72,20 +81,18 @@ function HeatMapType(tileSize) {
 
 HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	var div = ownerDocument.createElement('DIV');
-	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) { return div; }
 	div.className = 'tile';
 	div.style.opacity = 0.0;
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
 	var bbox = this.projection.getTileBounds(coord, zoom);
 	div.innerHTML = coord.toString() + ", " + zoom + "<br />" + bbox.toString();
-	
 	$.ajax({
 		context:			div,
 		type:         "GET",
 		url:          "http://testapi.daac.asf.alaska.edu/services/search/param",
 		processData:  true,
 		data:         {
-										bbox: '-126,69.75,-125.75,70',
+										bbox: bbox.toUrlValue(6),
 										processing: 'BROWSE',
 										format: 'count'
 									},
