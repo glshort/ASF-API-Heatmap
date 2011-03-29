@@ -54,8 +54,8 @@ MercatorProjection.prototype.getTileCoord = function(latLng) {
 }
 
 MercatorProjection.prototype.getTileBounds = function(tileCoord, zoom) {
-	//lat range: +/- 85.051130
-	//lon range: +/- 180.000000
+	// lat range: +/- 85.051130
+	// lon range: +/- 180.000000
 	var w = 360.0 / Math.pow(2, zoom);
 	var h = 170.102260 / Math.pow(2, zoom);
 	var west = tileCoord.x * w - 180.0;
@@ -63,11 +63,11 @@ MercatorProjection.prototype.getTileBounds = function(tileCoord, zoom) {
 	var north = (Math.pow(2, zoom) - tileCoord.y) * h - 85.051130;
 	var south = (Math.pow(2, zoom) - (tileCoord.y + 1)) * h - 85.051130;
 	
-//	if(west > east) {
-//		var t = west;
-//		west = east;
-//		east = t;
-//	}
+	if(west > east) {
+		var t = west;
+		west = east;
+		east = t;
+	}
 	
 	return new google.maps.LatLngBounds(
 		new google.maps.LatLng(south, west),
@@ -163,7 +163,7 @@ LatLngControl.prototype.updatePosition = function(latLng) {
 	this.node_.innerHTML = [
 		"Cursor Location:",
 		"<br />",
-		latLng.toUrlValue(4),
+		latLng.toUrlValue(2),
 		"<br />",
 		"Region Bounds:",
 		"<br />",
@@ -200,9 +200,10 @@ function init() {
 	document.getElementById("heatmap").style.width = sWidth + "px";
 	document.getElementById("heatmap").style.height = sHeight + "px";
 	var mapOptions = {
-		zoom: 4,
+		zoom: 0,
+		minZoom: 1,
 		maxZoom: 8,
-		center: new google.maps.LatLng(50,50),
+		center: new google.maps.LatLng(0,0),
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 	map = new google.maps.Map(document.getElementById("heatmap"), mapOptions);
