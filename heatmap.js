@@ -106,12 +106,8 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 
 function tileLoaded(div, data) {
 	var scale = 10; //Math.floor(Math.pow(2, (29-z) * 0.5));
-	var c = data.count;
-	if(c < 0) {
-		c = 0;
-	} else if(c > scale) {
-		c = scale;
-	}
+	var c = bound(data.count, 0, scale);
+	//fixme: next line could maybe go away
 	div.className = 'tile';
 	div.style.opacity = (c / scale) * 0.5;
 	div.style.backgroundColor = "#" + (Math.floor(255 * c / scale)).toString(16) + "00" + (Math.floor(255-255 * c / scale)).toString(16);
@@ -208,5 +204,3 @@ function init() {
 }
 
 google.maps.event.addDomListener(window, 'load', init);
-
-console.log("--------------------");
