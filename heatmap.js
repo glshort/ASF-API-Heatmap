@@ -118,7 +118,7 @@ function makeHappyAPIBoundsString(bbox) {
 	if(east == -180 && west >= 0) {
 		east = 180;
 	}
-	return([south.toFixed(6), west.toFixed(6), north.toFixed(6), east.toFixed(6)].join(','));
+	return([west.toFixed(6), south.toFixed(6), east.toFixed(6), north.toFixed(6)].join(','));
 }
 
 function tileLoaded(div, data) {
