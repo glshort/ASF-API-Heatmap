@@ -84,7 +84,10 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) {
 		return div;
 	}
-	div.innerHTML = '<img class="loading" src="loading.gif" />';
+	var img = ownerDocument.createElement('IMG');
+	img.src = "loading.gif";
+	img.className = "loading";
+	div.appendChild(img);
 	div.className = 'tile loading';
 	div.loading = true;
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
@@ -124,7 +127,7 @@ function makeHappyAPIBoundsString(bbox) {
 function tileLoaded(div, data) {
 	div.innerHTML = data.count;
 	div.loading = false;
-	var LUT = [50000, 35000, 25000, 15000, 5000, 2000, 800, 400, 100];
+	var LUT = [2000000, 400000, 25000, 15000, 5000, 2000, 800, 400, 100];
 	var scale;
 	if(map.getZoom() >= LUT.length) {
 		scale = LUT[LUT.length - 1];
@@ -225,10 +228,10 @@ function init() {
 	document.getElementById("heatmap").style.width = sWidth + "px";
 	document.getElementById("heatmap").style.height = sHeight + "px";
 	var mapOptions = {
-		zoom: 0,
+		zoom: 5,
 		minZoom: 1,
 		maxZoom: 8,
-		center: new google.maps.LatLng(0,0),
+		center: new google.maps.LatLng(64, -145),
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 	map = new google.maps.Map(document.getElementById("heatmap"), mapOptions);
