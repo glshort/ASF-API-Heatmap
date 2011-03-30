@@ -3,15 +3,13 @@ body {
 	padding: 0px;
 }
 
-.tileinfo {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 256px;
-  height: 256px;
+img.loading {
+	position: relative;
+	left: 111px;
+	top: 111px;
 }
 
-.tile {
+div.tile {
   -webkit-transition-property: opacity, background-color;
   -webkit-transition-duration: 500ms, 150ms;
   -moz-transition-property: opacity, background-color;
@@ -26,15 +24,20 @@ body {
   border-style: solid;
   border-color: #FFFF00;
   margin: 0px;
+  opacity: 0.5;
 }
 
-.active {
+div.active {
   border-width: 4px;
   margin: -4px;
   z-index: 2000;
 }
 
-.infopane {
+div.loading {
+	background-color: #FFFFFF;
+}
+
+div.infopane {
   width: 130px;
   height: 70px;
   font-size: 13px;

@@ -84,18 +84,18 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) {
 		return div;
 	}
-	div.className = 'tile';
-	div.style.opacity = 0.0;
+	div.innerHTML = '<img class="loading" src="loading.gif" />';
+	div.className = 'tile loading';
+	div.loading = true;
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
 	var bbox = this.projection.getTileBounds(coord, zoom);
-	div.innerHTML = coord.toString() + ", " + zoom + "<br />" + bbox.toString();
 	$.ajax({
 		context:			div,
 		type:         "GET",
 		url:          "http://testapi.daac.asf.alaska.edu/services/search/param",
 		processData:  true,
 		data:         {
-										bbox: bbox.toUrlValue(6),
+										bbox: makeHappyAPIBoundsString(bbox),
 										processing: 'BROWSE',
 										format: 'count'
 									},
@@ -107,7 +107,23 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	return div;
 };
 
+function makeHappyAPIBoundsString(bbox) {
+	var west = bbox.getSouthWest().lng();
+	var south = bbox.getSouthWest().lat();
+	var east = bbox.getNorthEast().lng();
+	var north = bbox.getNorthEast().lat();
+	if(west == 180 && east <= 0) {
+		west = -180;
+	}
+	if(east == -180 && west >= 0) {
+		east = 180;
+	}
+	return([south.toFixed(6), west.toFixed(6), north.toFixed(6), east.toFixed(6)].join(','));
+}
+
 function tileLoaded(div, data) {
+	div.innerHTML = data.count;
+	div.loading = false;
 	var LUT = [50000, 35000, 25000, 15000, 5000, 2000, 800, 400, 100];
 	var scale;
 	if(map.getZoom() >= LUT.length) {
@@ -116,9 +132,11 @@ function tileLoaded(div, data) {
 		scale = LUT[map.getZoom()];
 	}
 	var c = bound(data.count, 0, scale);
-	//fixme: next line could maybe go away
-	div.className = 'tile';
-	div.style.opacity = 0.5;
+	if(div.className.match('active')) {
+		div.className = 'tile active';
+	} else {
+		div.className = 'tile';
+	}
 	var r = Math.floor(255 * c / scale).toString(16);
 	if(r.length == 1) {
 		r = "0" + r;
@@ -129,7 +147,6 @@ function tileLoaded(div, data) {
 		b = "0" + b;
 	}
 	div.style.backgroundColor = "#" + r + g + b;
-	div.innerHTML = data.count;
 }
 
 function LatLngControl(map) {
@@ -175,12 +192,20 @@ LatLngControl.prototype.updatePosition = function(latLng) {
 		].join("");
 	
 	if(this.activeTile) {
-		this.activeTile.className = "tile";
+		if(this.activeTile.loading) {
+			this.activeTile.className = "tile loading";
+		} else {
+			this.activeTile.className = "tile";
+		}
 		this.activeTile = null;
 	}
 	var tilediv = document.getElementById("tilediv_" + tileCoord.x.toString().replace("-", "_") + "_" + tileCoord.y.toString().replace("-", "_") + "_" + map.getZoom());
 	if(tilediv) {
-		tilediv.className = 'tile active';
+		if(tilediv.loading) {
+			tilediv.className = 'tile active loading';
+		} else {
+			tilediv.className = 'tile active';
+		}
 		this.activeTile = tilediv;
 	}
 };
