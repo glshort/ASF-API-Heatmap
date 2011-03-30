@@ -20,30 +20,64 @@ div.tile {
   width: 256px;
   height: 256px;
   z-index: 1000;
-  border-width: 0px;
-  border-style: solid;
-  border-color: #FFFF00;
   margin: 0px;
   opacity: 0.5;
 }
 
 div.active {
   border-width: 4px;
+  border-style: solid;
+  border-color: #FFFF00;
   margin: -4px;
   z-index: 2000;
 }
 
+div.selected {
+	border-width: 4px;
+  border-style: solid;
+  border-color: #00FFFF;
+	margin: -4px;
+	z-index: 2000;
+}
+
 div.loading {
 	background-color: #FFFFFF;
+	opacity: 0.25;
 }
 
 div.infopane {
-  width: 130px;
-  height: 5.75em;
+	width: 130px;
   font-size: .75em;
-  text-align: center;
-  margin: 0px 4px 0px 0px;
-  padding: 2px 0px 2px 4px;
+  margin: 0px 0px 0px 0px;
+  padding: 2px 2px 2px 2px;
   border: 2px solid #CCAA00;
   background-color: #FFFF77;
+}
+
+div.cursor {
+  text-align: center;
+	height: 5.75em;
+}
+
+div.legend {
+	height: 2.25em;
+}
+
+div.min {
+	text-align: left;
+	position: absolute;
+}
+
+div.max {
+	text-align: right;
+	right: 2px;
+	position: absolute;
+}
+
+img.legend {
+	position: absolute;
+	top: 1.25em;
+	width: 130px;
+	height: 1em;
+	text-align: center;
 }

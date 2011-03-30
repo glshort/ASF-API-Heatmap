@@ -1,6 +1,6 @@
 var tilesize = 256;
-
 var MERCATOR_RANGE = 256;
+var maxLUT = [2000000, 400000, 25000, 15000, 5000, 2000, 800, 400, 100];
 
 function bound(value, opt_min, opt_max) {
 	if (opt_min != null) value = Math.max(value, opt_min);
@@ -79,11 +79,11 @@ function HeatMapType(tileSize) {
 	this.projection = new MercatorProjection();
 }
 
-HeatMapType.prototype.getTileTemplate = function(ownerDocument) {
-	var div = ownerDocument.createElement('DIV');
+HeatMapType.prototype.createHtmlNode = function() {
+	var div = document.createElement('div');
 	div.className = "tile loading";
 	div.loading = true;
-	var img = ownerDocument.createElement('IMG');
+	var img = document.createElement('img');
 	img.src = "loading.gif";
 	img.className = "loading";
 	div.appendChild(img);
@@ -92,9 +92,9 @@ HeatMapType.prototype.getTileTemplate = function(ownerDocument) {
 
 HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) {
-		return ownerDocument.createElement('DIV');
+		return ownerDocument.createElement('div');
 	}
-	var div = this.getTileTemplate(ownerDocument);
+	var div = this.createHtmlNode();
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
 	var bbox = this.projection.getTileBounds(coord, zoom);
 	$.ajax({
@@ -104,7 +104,6 @@ HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
 		processData:  true,
 		data:         {
 										bbox: makeHappyAPIBoundsString(bbox),
-										processing: 'BROWSE',
 										format: 'count'
 									},
 		dataType:     "jsonp",
@@ -132,12 +131,11 @@ function makeHappyAPIBoundsString(bbox) {
 function tileLoaded(div, data) {
 	var icon = div.getElementsByTagName('IMG')[0];
 	div.removeChild(icon);
-	var LUT = [2000000, 400000, 25000, 15000, 5000, 2000, 800, 400, 100];
 	var scale;
-	if(map.getZoom() >= LUT.length) {
-		scale = LUT[LUT.length - 1];
+	if(map.getZoom() >= maxLUT.length) {
+		scale = maxLUT[maxLUT.length - 1];
 	} else {
-		scale = LUT[map.getZoom()];
+		scale = maxLUT[map.getZoom()];
 	}
 	var c = bound(data.count, 0, scale);
 	if(div.className.match('active')) {
@@ -157,35 +155,31 @@ function tileLoaded(div, data) {
 	div.style.backgroundColor = "#" + r + g + b;
 }
 
-function LatLngControl(map) {
-	this.node_ = this.createHtmlNode_();
-	map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(this.node_);
+function CursorInfo(map) {
+	this.divNode = this.createHtmlNode();
+	map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(this.divNode);
 	this.setMap(map);
-	this.set('visible', true);
 	this.activeTile = null;
 	this.projection = new MercatorProjection();
 }
 
-LatLngControl.prototype = new google.maps.OverlayView();
-LatLngControl.prototype.draw = function() {};
+CursorInfo.prototype = new google.maps.OverlayView();
 
-LatLngControl.prototype.createHtmlNode_ = function() {
+CursorInfo.prototype.draw = function() {};
+
+CursorInfo.prototype.createHtmlNode = function() {
 	var divNode = document.createElement('div');
-	divNode.id = 'latlng-control';
-	divNode.index = 100;
-	divNode.className = 'infopane';
+	divNode.id = 'cursorinfo-control';
+	divNode.index = 1000;
+	divNode.className = 'infopane cursor';
 	return divNode;
 };
 
-LatLngControl.prototype.visible_changed = function() {
-	this.node_.style.display = this.get('visible') ? '' : 'none';
-};
-
-LatLngControl.prototype.updatePosition = function(latLng) {
+CursorInfo.prototype.updatePosition = function(latLng) {
 	var tileCoord = this.projection.getTileCoord(latLng);
 	var tileBounds = this.projection.getTileBounds(tileCoord, map.getZoom());
 	var worldCoordinate = this.projection.fromLatLngToPoint(latLng);
-	this.node_.innerHTML = [
+	this.divNode.innerHTML = [
 		"Cursor Location:",
 		"<br />",
 		latLng.toUrlValue(2),
@@ -218,6 +212,47 @@ LatLngControl.prototype.updatePosition = function(latLng) {
 	}
 };
 
+function Legend(map) {
+	this.divNode = this.createHtmlNode();
+	map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(this.divNode);
+	this.setMap(map);
+	this.updateScale(map.getZoom());
+}
+
+Legend.prototype = new google.maps.OverlayView();
+
+Legend.prototype.draw = function() {};
+
+Legend.prototype.createHtmlNode = function() {
+	var divNode = document.createElement('div');
+	divNode.id = 'legend-control';
+	divNode.index=1000;
+	divNode.className = 'infopane legend';
+	var max = document.createElement('div');
+	max.className = 'legend max';
+	var min = document.createElement('div');
+	min.className = 'legend min';
+	var gradient = document.createElement('img');
+	gradient.className = 'legend';
+	gradient.src = 'gradient_h.png';
+	divNode.appendChild(min);
+	divNode.appendChild(max);
+	divNode.appendChild(gradient);
+	return divNode;
+}
+
+Legend.prototype.updateScale = function(zoom) {
+	var min = 0;
+	var max;
+	if(zoom >= maxLUT.length) {
+		max = maxLUT[maxLUT.length - 1];
+	} else {
+		max = maxLUT[zoom];
+	}
+	this.divNode.getElementsByClassName('min')[0].innerHTML = min;
+	this.divNode.getElementsByClassName('max')[0].innerHTML = max + '+';
+}
+
 var map;
 
 function init() {
@@ -241,9 +276,15 @@ function init() {
 	};
 	map = new google.maps.Map(document.getElementById("heatmap"), mapOptions);
 	
-	var latLngControl = new LatLngControl(map);
+	var cursorInfo = new CursorInfo(map);
+	var legend = new Legend(map);
+	
 	google.maps.event.addListener(map, 'mousemove', function(mEvent) {
-		latLngControl.updatePosition(mEvent.latLng);});
+		cursorInfo.updatePosition(mEvent.latLng);
+	});
+	google.maps.event.addListener(map, 'zoom_changed', function(mEvent) {
+		legend.updateScale(map.getZoom());
+	});
 
 	map.overlayMapTypes.insertAt(0, new HeatMapType(new google.maps.Size(tilesize,tilesize)));
 }
