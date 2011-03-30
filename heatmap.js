@@ -231,7 +231,7 @@ function init() {
 		zoom: 5,
 		minZoom: 1,
 		maxZoom: 8,
-		center: new google.maps.LatLng(64, -145),
+		center: new google.maps.LatLng(70, -145),
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 	map = new google.maps.Map(document.getElementById("heatmap"), mapOptions);
