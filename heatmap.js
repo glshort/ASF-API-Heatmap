@@ -79,17 +79,22 @@ function HeatMapType(tileSize) {
 	this.projection = new MercatorProjection();
 }
 
-HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
+HeatMapType.prototype.getTileTemplate = function(ownerDocument) {
 	var div = ownerDocument.createElement('DIV');
-	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) {
-		return div;
-	}
+	div.className = "tile loading";
+	div.loading = true;
 	var img = ownerDocument.createElement('IMG');
 	img.src = "loading.gif";
 	img.className = "loading";
 	div.appendChild(img);
-	div.className = 'tile loading';
-	div.loading = true;
+	return div;
+}
+
+HeatMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
+	if(coord.y < 0 || coord.y >= Math.pow(2, zoom)) {
+		return ownerDocument.createElement('DIV');
+	}
+	var div = this.getTileTemplate(ownerDocument);
 	div.id = "tilediv_" + coord.x.toString().replace("-", "_") + "_" + coord.y.toString().replace("-", "_") + "_" + zoom;
 	var bbox = this.projection.getTileBounds(coord, zoom);
 	$.ajax({
@@ -125,8 +130,8 @@ function makeHappyAPIBoundsString(bbox) {
 }
 
 function tileLoaded(div, data) {
-	div.innerHTML = "";
-	div.loading = false;
+	var icon = div.getElementsByTagName('IMG')[0];
+	div.removeChild(icon);
 	var LUT = [2000000, 400000, 25000, 15000, 5000, 2000, 800, 400, 100];
 	var scale;
 	if(map.getZoom() >= LUT.length) {
@@ -195,7 +200,7 @@ LatLngControl.prototype.updatePosition = function(latLng) {
 		].join("");
 	
 	if(this.activeTile) {
-		if(this.activeTile.loading) {
+		if(this.activeTile.className.match('loading')) {
 			this.activeTile.className = "tile loading";
 		} else {
 			this.activeTile.className = "tile";
@@ -204,7 +209,7 @@ LatLngControl.prototype.updatePosition = function(latLng) {
 	}
 	var tilediv = document.getElementById("tilediv_" + tileCoord.x.toString().replace("-", "_") + "_" + tileCoord.y.toString().replace("-", "_") + "_" + map.getZoom());
 	if(tilediv) {
-		if(tilediv.loading) {
+		if(tilediv.className.match('loading')) {
 			tilediv.className = 'tile active loading';
 		} else {
 			tilediv.className = 'tile active';
