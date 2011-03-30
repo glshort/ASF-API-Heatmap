@@ -125,7 +125,7 @@ function makeHappyAPIBoundsString(bbox) {
 }
 
 function tileLoaded(div, data) {
-	div.innerHTML = data.count;
+	div.innerHTML = "";
 	div.loading = false;
 	var LUT = [2000000, 400000, 25000, 15000, 5000, 2000, 800, 400, 100];
 	var scale;
