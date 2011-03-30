@@ -63,12 +63,6 @@ MercatorProjection.prototype.getTileBounds = function(tileCoord, zoom) {
 	var north = (Math.pow(2, zoom) - tileCoord.y) * h - 85.051130;
 	var south = (Math.pow(2, zoom) - (tileCoord.y + 1)) * h - 85.051130;
 	
-	if(west > east) {
-		var t = west;
-		west = east;
-		east = t;
-	}
-	
 	return new google.maps.LatLngBounds(
 		new google.maps.LatLng(south, west),
 		new google.maps.LatLng(north, east));
