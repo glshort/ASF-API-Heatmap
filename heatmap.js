@@ -1,6 +1,6 @@
 var tilesize = 256;
 var MERCATOR_RANGE = 256;
-var maxLUT = [2000000, 400000, 25000, 15000, 5000, 2000, 800, 400, 100];
+var maxLUT = [4000000, 2000000, 500000, 150000, 15000, 3000, 1000, 250, 100];
 
 function bound(value, opt_min, opt_max) {
 	if (opt_min != null) value = Math.max(value, opt_min);
