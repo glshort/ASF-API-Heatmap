@@ -2,6 +2,18 @@ var tilesize = 256;
 var MERCATOR_RANGE = 256;
 var maxLUT = [4000000, 2000000, 500000, 150000, 15000, 3000, 1000, 250, 100];
 
+function addCommas(nStr) {
+	nStr += '';
+	x = nStr.split('.');
+	x1 = x[0];
+	x2 = x.length > 1 ? '.' + x[1] : '';
+	var rgx = /(\d+)(\d{3})/;
+	while (rgx.test(x1)) {
+		x1 = x1.replace(rgx, '$1' + ',' + '$2');
+	}
+	return x1 + x2;
+}
+
 function bound(value, opt_min, opt_max) {
 	if (opt_min != null) value = Math.max(value, opt_min);
 	if (opt_max != null) value = Math.min(value, opt_max);
@@ -243,6 +255,7 @@ Legend.prototype.updateScale = function(zoom) {
 	} else {
 		max = maxLUT[zoom];
 	}
+	max = addCommas(max);
 	this.divNode.getElementsByClassName('min')[0].innerHTML = min;
 	this.divNode.getElementsByClassName('max')[0].innerHTML = max + '+';
 }
